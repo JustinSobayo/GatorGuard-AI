@@ -1,7 +1,9 @@
 import boto3
 import json
 import os
+from typing import Any
 from dotenv import load_dotenv
+from botocore.client import BaseClient
 
 load_dotenv()
 
@@ -11,9 +13,12 @@ AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 
-def get_s3_client():
+def get_s3_client() -> BaseClient:
     """
-    Initializes and returns a boto3 S3 client using credentials from .env.
+    Initialize and return a boto3 S3 client using credentials from .env.
+    
+    Returns:
+        Configured S3 client instance
     """
     return boto3.client(
         's3',
@@ -22,9 +27,16 @@ def get_s3_client():
         region_name=AWS_REGION
     )
 
-def upload_raw_data(data: list, filename: str):
+def upload_raw_data(data: list[dict[str, Any]], filename: str) -> bool:
     """
-    Uploads raw JSON data to S3 into the 'raw/crime/' folder.
+    Upload raw JSON data to S3 into the 'raw/crime/' folder.
+    
+    Args:
+        data: List of crime records as dictionaries
+        filename: Target filename in S3 bucket
+        
+    Returns:
+        True if upload succeeded, False otherwise
     """
     s3 = get_s3_client()
     try:
@@ -44,9 +56,15 @@ def upload_raw_data(data: list, filename: str):
         print(f"Error uploading to S3: {str(e)}")
         return False
 
-def download_data(filename: str):
+def download_data(filename: str) -> list[dict[str, Any]] | None:
     """
-    Downloads data from S3 for processing.
+    Download data from S3 for processing.
+    
+    Args:
+        filename: Path to file in S3 bucket
+        
+    Returns:
+        Parsed JSON data as list of dictionaries, or None if error
     """
     s3 = get_s3_client()
     try:

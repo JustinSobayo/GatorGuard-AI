@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+from typing import Any
 from dotenv import load_dotenv
 from s3_utils import upload_raw_data
 
@@ -11,10 +12,14 @@ API_URL = os.getenv("GAINESVILLE_API_URL")
 APP_TOKEN = os.getenv("GAINESVILLE_APP_TOKEN")
 SECRET_TOKEN = os.getenv("GAINESVILLE_SECRET_TOKEN")
 
-def fetch_historical_crimes():
+def fetch_historical_crimes() -> list[dict[str, Any]] | None:
     """
-    Fetches all historical crime data from Gainesville Open Data Portal.
+    Fetch all historical crime data from Gainesville Open Data Portal.
+    
     SODA3 uses standard pagination if needed, but we'll try to fetch a large batch.
+    
+    Returns:
+        List of crime records as dictionaries, or None if fetch failed
     """
     print(f"Connecting to {API_URL}...")
     headers = {

@@ -10,3 +10,8 @@ langchain-community
 langchain-google-genai # For Gemini
 python-dotenv   # Env vars
 requests        # API polling
+
+# Type Checking
+mypy
+types-requests
+types-boto3
