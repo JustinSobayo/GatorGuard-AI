@@ -15,3 +15,7 @@ requests        # API polling
 mypy
 types-requests
 types-boto3
+
+# Testing
+pytest
+pytest-mock

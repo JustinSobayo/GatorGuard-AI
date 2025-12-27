@@ -3,7 +3,7 @@ import requests
 import json
 from typing import Any
 from dotenv import load_dotenv
-from s3_utils import upload_raw_data
+from backend.s3_utils import upload_raw_data
 
 load_dotenv()
 
