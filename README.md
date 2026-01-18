@@ -1,4 +1,4 @@
-# GainesvilleGuard-AI
+# GatorGuard-AI
 
 **Real-time Predictive Crime Analysis & Safety Platform**
 
