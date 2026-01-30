@@ -3,7 +3,7 @@ import requests
 import json
 from typing import Any
 from dotenv import load_dotenv
-from backend.s3_utils import upload_raw_data
+from s3_utils import upload_raw_data
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ def fetch_gainesville_pois() -> list[dict[str, Any]] | None:
         response = requests.post(
             OVERPASS_URL,
             data={"data": overpass_query},
-            timeout=120  # Overpass can be slow, give it 2 minutes
+            timeout=120 
         )
         response.raise_for_status()
         data = response.json()
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     if poi_data:
         # 2. Upload to S3 (different folder than crime data)
         print("Starting upload to S3 Data Lake...")
-        success = upload_raw_data(poi_data, "../places/gainesville_pois.json")
+        success = upload_raw_data(poi_data, "gainesville_pois.json")
         
         if success:
             print("--- OSM DATA INGESTION COMPLETE ---")

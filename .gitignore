@@ -18,3 +18,4 @@ venv/
 # Logs
 *.log
 .venv/
+DOCKER_CHEATSHEET.md
