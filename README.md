@@ -38,6 +38,9 @@ We use **PostGIS** to handle the heavy lifting of spatial queries.
 ## Predictive Crime Prevention
 This system utilizes **Spatial-Temporal Pattern Analysis** methodologies:
 
+<img width="1315" height="514" alt="Screenshot 2026-01-29 184714" src="https://github.com/user-attachments/assets/34ed9cf9-a7d0-481d-a1ca-678c3c3ba81a" />
+
+
 ### 1. Risk Terrain Modeling (RTM)
 Identifies environmental factors that contribute to crime risk by connecting crime events to nearby points of interest (bars, ATMs, bus stops) from OpenStreetMap data.
 
