@@ -2,7 +2,7 @@
 
 **Real-time Predictive Crime Analysis & Safety Platform**
 
-GainesvilleGuard-AI is an advanced data engineering and AI platform designed to analyze crime data in Gainesville, FL, in real-time. By leveraging industry-grade streaming pipelines and graph-based machine learning, it provides low-latency predictive risk assessments to enhance community safety.
+GainesvilleGuard-AI is an data engineering and AI platform designed to analyze crime data in Gainesville, FL, in real-time. By leveraging industry-grade streaming pipelines and graph-based machine learning, it provides predictive risk assessments to enhance community safety.
 
 ## Project Goal
 To move beyond simple historical crime mapping by building a system that can **ingest live data**, **process complex relationships** (via Knowledge Graphs), and **forecast crime risk** for specific times and locations.
@@ -19,7 +19,7 @@ The system follows a modern Event-Driven Architecture (EDA):
 *   **Frontend**: A responsive web application visualizing "Past, Current/Actual, and Predicted" crime heatmaps.
 
 ## Technology Stack
-This project showcases a "Heavy" Data Engineering stack designed for scale:
+This project uses a Data Engineering stack designed for scale:
 
 *   **Backend**: Python, FastAPI
 *   **Streaming**: Apache Kafka, Zookeeper
@@ -28,7 +28,7 @@ This project showcases a "Heavy" Data Engineering stack designed for scale:
     *   **PostgreSQL** (Relational)
     *   **PostGIS** (Geospatial Optimization)
     *   **Neo4j** (Graph Database)
-*   **Infrastructure**: Docker, Docker Compose
+*   **Infrastructure/Containerization**: Docker, Docker Compose
 
 ## Why Geospatial Optimization (PostGIS)?
 We use **PostGIS** to handle the heavy lifting of spatial queries. 
