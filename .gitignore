@@ -19,3 +19,4 @@ venv/
 *.log
 .venv/
 DOCKER_CHEATSHEET.md
+docs/

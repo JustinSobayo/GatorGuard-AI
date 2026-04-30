@@ -18,7 +18,10 @@ from dotenv import load_dotenv
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from s3_utils import download_data
+try:
+    from backend.s3_utils import download_data
+except ImportError:  # pragma: no cover - supports direct execution from backend/
+    from s3_utils import download_data
 
 load_dotenv()
 
@@ -47,7 +50,11 @@ class POILoader:
     def create_constraints(self):
         """Create indexes and constraints for Place nodes."""
         queries = [
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (i:Incident) REQUIRE i.case_id IS UNIQUE",
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (l:Location) REQUIRE l.location_id IS UNIQUE",
             "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Place) REQUIRE p.osm_id IS UNIQUE",
+            "CREATE INDEX IF NOT EXISTS FOR (l:Location) ON (l.lat)",
+            "CREATE INDEX IF NOT EXISTS FOR (l:Location) ON (l.lon)",
             "CREATE INDEX IF NOT EXISTS FOR (p:Place) ON (p.amenity_type)",
             "CREATE INDEX IF NOT EXISTS FOR (p:Place) ON (p.lat)",
             "CREATE INDEX IF NOT EXISTS FOR (p:Place) ON (p.lon)",
@@ -72,6 +79,7 @@ class POILoader:
         MERGE (p:Place {osm_id: $osm_id})
         SET p.name = $name,
             p.amenity_type = $amenity,
+            p.osm_type = $osm_type,
             p.lat = $lat,
             p.lon = $lon
         """
@@ -82,10 +90,11 @@ class POILoader:
                 # Skip POIs without coordinates
                 if poi.get("lat") is None or poi.get("lon") is None:
                     continue
-                
+
                 session.run(
                     query,
                     osm_id=poi.get("id"),
+                    osm_type=poi.get("type", "node"),
                     name=poi.get("name", "Unknown"),
                     amenity=poi.get("amenity", "unknown"),
                     lat=float(poi.get("lat")),
@@ -112,31 +121,58 @@ class POILoader:
         Returns:
             Number of relationships created
         """
-        # This query finds all incidents near places and creates relationships
-        # We batch by amenity type to avoid memory issues with large datasets
-        
-        query = """
-        MATCH (i:Incident)-[:OCCURRED_AT]->(l:Location)
-        MATCH (p:Place)
-        WHERE l.lat IS NOT NULL AND l.lon IS NOT NULL
-          AND p.lat IS NOT NULL AND p.lon IS NOT NULL
-        WITH i, l, p,
-             point.distance(
-                 point({latitude: l.lat, longitude: l.lon}),
-                 point({latitude: p.lat, longitude: p.lon})
-             ) AS distance_meters
-        WHERE distance_meters < $threshold
-        MERGE (i)-[r:OCCURRED_NEAR]->(p)
-        SET r.distance_meters = distance_meters
-        RETURN count(r) AS relationships_created
-        """
-        
+        lat_delta = distance_threshold / 111_320.0
+        lon_delta = distance_threshold / 97_000.0
+
         with self.driver.session() as session:
-            result = session.run(query, threshold=distance_threshold)
-            record = result.single()
-            count = record["relationships_created"] if record else 0
-        
-        return count
+            places = list(
+                session.run(
+                    """
+                    MATCH (p:Place)
+                    WHERE p.lat IS NOT NULL AND p.lon IS NOT NULL
+                    RETURN p.osm_id AS osm_id, p.lat AS lat, p.lon AS lon
+                    ORDER BY p.osm_id
+                    """
+                )
+            )
+
+            total = 0
+            query = """
+            MATCH (p:Place {osm_id: $osm_id})
+            MATCH (i:Incident)-[:OCCURRED_AT]->(l:Location)
+            WHERE l.lat IS NOT NULL AND l.lon IS NOT NULL
+              AND l.lat >= $min_lat AND l.lat <= $max_lat
+              AND l.lon >= $min_lon AND l.lon <= $max_lon
+            WITH i, l, p,
+                 point.distance(
+                     point({latitude: l.lat, longitude: l.lon}),
+                     point({latitude: p.lat, longitude: p.lon})
+                 ) AS distance_meters
+            WHERE distance_meters < $threshold
+            MERGE (i)-[r:OCCURRED_NEAR]->(p)
+            SET r.distance_meters = distance_meters
+            RETURN count(r) AS relationships_created
+            """
+
+            for index, place in enumerate(places, start=1):
+                lat = float(place["lat"])
+                lon = float(place["lon"])
+                result = session.run(
+                    query,
+                    osm_id=place["osm_id"],
+                    threshold=distance_threshold,
+                    min_lat=lat - lat_delta,
+                    max_lat=lat + lat_delta,
+                    min_lon=lon - lon_delta,
+                    max_lon=lon + lon_delta,
+                )
+                record = result.single()
+                total += record["relationships_created"] if record else 0
+
+                if index % 100 == 0:
+                    print(f"  Processed {index}/{len(places)} places for relationships...")
+
+        return total
     
     def get_stats(self) -> dict:
         """Get current counts of Place nodes and OCCURRED_NEAR relationships."""

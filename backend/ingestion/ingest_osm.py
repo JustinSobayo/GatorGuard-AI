@@ -3,12 +3,19 @@ import requests
 import json
 from typing import Any
 from dotenv import load_dotenv
-from s3_utils import upload_raw_data
+
+try:
+    from backend.s3_utils import upload_raw_data
+except ImportError:  # pragma: no cover - supports running from backend/
+    from s3_utils import upload_raw_data
 
 load_dotenv()
 
 # Overpass API Configuration
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+OVERPASS_URLS = [
+    os.getenv("OVERPASS_URL", "https://overpass-api.de/api/interpreter"),
+    "https://overpass.kumi.systems/api/interpreter",
+]
 
 # Gainesville bounding box (lat/lon coordinates)
 # Format: [south, west, north, east]
@@ -31,23 +38,39 @@ def fetch_gainesville_pois() -> list[dict[str, Any]] | None:
     overpass_query = f"""
     [out:json][timeout:60];
     (
-      node["amenity"~"bar|pub|nightclub|restaurant|cafe|atm|bank|school|university|parking"]
-        ({GAINESVILLE_BBOX[0]},{GAINESVILLE_BBOX[1]},{GAINESVILLE_BBOX[2]},{GAINESVILLE_BBOX[3]});
-      way["amenity"~"bar|pub|nightclub|restaurant|cafe|atm|bank|school|university|parking"]
+      nwr["amenity"~"^(bar|pub|nightclub|restaurant|cafe|atm|bank|school|university|parking)$"]
         ({GAINESVILLE_BBOX[0]},{GAINESVILLE_BBOX[1]},{GAINESVILLE_BBOX[2]},{GAINESVILLE_BBOX[3]});
     );
     out center;
     """
-    #try making a HTTP request to the Overpass API and print the responce and if it doesn't
-    #work, print there was an error
+    headers = {
+        "User-Agent": "GatorGuardAI/1.0 (local data engineering project)",
+    }
+
+    last_error = None
+    for url in OVERPASS_URLS:
+        try:
+            response = requests.post(
+                url,
+                data={"data": overpass_query},
+                headers=headers,
+                timeout=120
+            )
+            response.raise_for_status()
+            data = response.json()
+            break
+        except Exception as e:
+            response_text = getattr(locals().get("response", None), "text", "")
+            if not isinstance(response_text, str):
+                response_text = ""
+            preview = f" Response: {response_text[:300]}" if response_text else ""
+            last_error = f"{url}: {str(e)}{preview}"
+            print(f"Overpass endpoint failed: {last_error}")
+    else:
+        print(f"Error fetching data from Overpass API: {last_error}")
+        return None
+
     try:
-        response = requests.post(
-            OVERPASS_URL,
-            data={"data": overpass_query},
-            timeout=120 
-        )
-        response.raise_for_status()
-        data = response.json()
         
         # Extract elements from Overpass response
         elements = data.get("elements", [])
@@ -71,7 +94,7 @@ def fetch_gainesville_pois() -> list[dict[str, Any]] | None:
         print(f"Successfully fetched {count} POIs from OpenStreetMap.")
         return pois
     except Exception as e:
-        print(f"Error fetching data from Overpass API: {str(e)}")
+        print(f"Error transforming Overpass response: {str(e)}")
         return None
 
 if __name__ == "__main__":

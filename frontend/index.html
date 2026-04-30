@@ -4,39 +4,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GainesvilleGuard</title>
-    <link rel="stylesheet" href="style.css?v=2">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <title>GatorGuard AI MVP</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
-    <div id="app">
-        <header class="header">
-            <h1>Gainesville Guard</h1>
-            <p>Safety Map & Crime Risk Analysis</p>
-        </header>
-        <main>
-            <div id="map"></div>
-            <div id="controls">
-                <h2>Settings</h2>
-                <div class="control-group">
-                    <label for="time-slider">Time of Day: <span id="time-display">12:00 PM</span></label>
-                    <input type="range" id="time-slider" min="0" max="23" value="12">
-                </div>
-                <div id="suggestions" class="suggestions-box">
-                    <h3>Suggestions</h3>
-                    <p>Select a time to see safety recommendations.</p>
-                </div>
+    <div class="app-shell">
+        <header class="topbar">
+            <div>
+                <h1>GatorGuard AI</h1>
+                <p id="api-status">Backend checking</p>
             </div>
+            <button id="refresh-predictions" class="primary-button" type="button">Refresh</button>
+        </header>
+
+        <main class="workspace">
+            <section class="map-panel" aria-label="Gainesville risk map">
+                <div id="map"></div>
+                <div id="map-summary" class="map-summary">No prediction layer loaded</div>
+            </section>
+
+            <aside class="side-panel" aria-label="Risk analysis controls">
+                <section class="panel-section">
+                    <div class="section-heading">
+                        <h2>Prediction Layer</h2>
+                        <span id="prediction-count" class="pill">0 zones</span>
+                    </div>
+
+                    <label class="field">
+                        <span>Date</span>
+                        <input id="prediction-date" type="date">
+                    </label>
+
+                    <label class="field">
+                        <span>Minimum Risk</span>
+                        <select id="risk-filter">
+                            <option value="medium" selected>Medium and high</option>
+                            <option value="high">High only</option>
+                            <option value="low">All risk levels</option>
+                        </select>
+                    </label>
+
+                    <div class="button-row">
+                        <button id="load-predictions" class="primary-button" type="button">Load Predictions</button>
+                        <button id="clear-selection" class="secondary-button" type="button">Clear Selection</button>
+                    </div>
+
+                    <div id="prediction-status" class="status-text">Ready</div>
+
+                    <dl class="stats-grid">
+                        <div>
+                            <dt>Total</dt>
+                            <dd id="stat-total">0</dd>
+                        </div>
+                        <div>
+                            <dt>High</dt>
+                            <dd id="stat-high">0</dd>
+                        </div>
+                        <div>
+                            <dt>Medium</dt>
+                            <dd id="stat-medium">0</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="panel-section advice-section">
+                    <div class="section-heading">
+                        <h2>Selected Zone</h2>
+                        <span id="selected-risk" class="pill muted">None</span>
+                    </div>
+                    <div id="advice-panel" class="empty-state">No zone selected</div>
+                </section>
+
+            </aside>
         </main>
     </div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=3"></script>
 </body>
 
 </html>

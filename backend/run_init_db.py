@@ -8,9 +8,9 @@ load_dotenv()
 # Configuration
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
-POSTGRES_DB = os.getenv('POSTGRES_DB', 'gatorguard')
-POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'postgres')
+POSTGRES_DB = os.getenv('POSTGRES_DB', 'gainesville_crime')
+POSTGRES_USER = os.getenv('POSTGRES_USER', 'admin')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'password')
 
 SQL_FILE_PATH = os.path.join(os.path.dirname(__file__), 'init_db.sql')
 
@@ -29,7 +29,7 @@ def run_init_db():
         cur = conn.cursor()
         
         print(f"Reading SQL file: {SQL_FILE_PATH}")
-        with open(SQL_FILE_PATH, 'r') as f:
+        with open(SQL_FILE_PATH, 'r', encoding='utf-8') as f:
             sql_content = f.read()
             
         print("Executing SQL schema...")

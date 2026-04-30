@@ -1,60 +1,127 @@
 # GatorGuard-AI
 
-**Real-time Predictive Crime Analysis & Safety Platform**
+**Predictive geospatial safety advice for Gainesville, FL**
 
-GainesvilleGuard-AI is an data engineering and AI platform designed to analyze crime data in Gainesville, FL, in real-time. By leveraging industry-grade streaming pipelines and graph-based machine learning, it provides predictive risk assessments to enhance community safety.
+GatorGuard-AI is a data engineering and AI project that turns Gainesville crime records and OpenStreetMap location data into a local safety map. The system loads raw data into a data lake, processes it through an ETL pipeline, stores spatial and graph context in databases, and serves predicted risk zones with plain-English safety advice.
 
-## Project Goal
-To move beyond simple historical crime mapping by building a system that can **ingest live data**, **process complex relationships** (via Knowledge Graphs), and **forecast crime risk** for specific times and locations.
+## What It Does
 
-## System Architecture
-The system follows a modern Event-Driven Architecture (EDA):
+- Ingests historical Gainesville crime data and OpenStreetMap points of interest.
+- Stores raw source data in AWS S3.
+- Streams and cleans crime records with Kafka and Spark.
+- Loads geospatial crime facts into PostgreSQL/PostGIS.
+- Loads crime, time, location, and nearby-place relationships into Neo4j.
+- Generates daily grid-cell risk predictions for the map.
+- Serves prediction heatmaps and AI-generated safety advice through FastAPI.
+- Displays predicted high-risk zones in a Leaflet frontend.
 
-*   **Ingestion**: Python Producers stream crime data into **Apache Kafka**.
-*   **Processing**: **Apache Spark Structured Streaming** processes raw events in real-time.
-*   **Knowledge Graph**: **Neo4j** models spatial-temporal relationships (crime clusters, environmental risk factors, location-based patterns).
-*   **Storage**: 
-    *   **PostgreSQL + PostGIS** for geospatial fact storage and fast map querying.
-    *   **AWS S3** for data lake archival.
-*   **Frontend**: A responsive web application visualizing "Past, Current/Actual, and Predicted" crime heatmaps.
+## Architecture
+
+```text
+Gainesville API + OpenStreetMap
+-> AWS S3 raw data lake
+-> Kafka producer
+-> Spark Structured Streaming ETL
+-> PostgreSQL/PostGIS for spatial facts and predictions
+-> Neo4j for relationship context
+-> FastAPI backend
+-> Leaflet frontend
+-> Gemini/LangChain explanation layer
+```
+
+The key design choice is separating expensive processing from real-time serving:
+
+- **ETL pipeline:** loads and cleans crime/POI data.
+- **PostGIS:** stores map geometry, crime points, grid cells, and cached prediction rows.
+- **Neo4j:** stores relationship context used to explain why an area may be risky.
+- **FastAPI:** exposes history, prediction, and advice endpoints.
+- **Gemini via LangChain:** turns structured facts into user-facing safety advice.
+
+## MVP Features
+
+- Predicted heatmap cells from `daily_grid_predictions`.
+- Click-to-advice flow for selected risk zones.
+- Structured advice response with:
+  - risk level
+  - risk score
+  - dominant crime type
+  - explanation
+  - safety advice
+  - supporting facts
+- Local frontend for testing the full backend flow.
 
 ## Technology Stack
-This project uses a Data Engineering stack designed for scale:
 
-*   **Backend**: Python, FastAPI
-*   **Streaming**: Apache Kafka, Zookeeper
-*   **ETL & Processing**: Apache Spark
-*   **Databases**: 
-    *   **PostgreSQL** (Relational)
-    *   **PostGIS** (Geospatial Optimization)
-    *   **Neo4j** (Graph Database)
-*   **Infrastructure/Containerization**: Docker, Docker Compose
+- **Backend:** Python, FastAPI
+- **Frontend:** HTML, CSS, JavaScript, Leaflet
+- **Streaming:** Apache Kafka, Zookeeper
+- **ETL:** Apache Spark Structured Streaming
+- **Storage:** AWS S3
+- **Databases:** PostgreSQL, PostGIS, Neo4j
+- **AI:** LangChain, Gemini
+- **Infrastructure:** Docker, Docker Compose
 
-## Why Geospatial Optimization (PostGIS)?
-We use **PostGIS** to handle the heavy lifting of spatial queries. 
-*   **Performance**: Since the map covers a large area, we need to efficiently query only the data visible on the screen. PostGIS uses **R-Tree indices** to instantly fetch points within a specific "Bounding Box" (the current map view) or Grid Cell.
-*   **Spatial Aggregation**: Essential for the predictive model, which divides Gainesville into thousands of fixed grid cells. PostGIS allows us to "Count crimes inside Grid X" instantly, which is critical for training the AI model and generating heatmaps.
+## Predictive Safety Method
 
-## Predictive Crime Prevention
-This system utilizes **Spatial-Temporal Pattern Analysis** methodologies:
+The project combines spatial, temporal, and relationship-based signals. PostGIS counts crime events inside fixed Gainesville grid cells, while Neo4j connects incidents to nearby places and time patterns. A prediction job precomputes risk scores so the frontend can load heatmap cells quickly without running expensive spatial aggregation during user requests.
 
 <img width="1315" height="514" alt="Screenshot 2026-01-29 184714" src="https://github.com/user-attachments/assets/34ed9cf9-a7d0-481d-a1ca-678c3c3ba81a" />
 
+The image illustrates the project idea: instead of only showing where crimes happened in the past, GatorGuard-AI combines historical incidents, location context, and time patterns to identify areas with elevated future risk.
 
-### 1. Risk Terrain Modeling (RTM)
-Identifies environmental factors that contribute to crime risk by connecting crime events to nearby points of interest (bars, ATMs, bus stops) from OpenStreetMap data.
+### Risk Terrain Modeling
 
-### 2. Graph-Based Pattern Detection
-Uses Neo4j to model relationships:
-*   **Crime Clusters**: `(Crime)-[:NEAR]->(Crime)` - Crimes within 500m and 7 days
-*   **Environmental Context**: `(Crime)-[:OCCURRED_NEAR]->(Place)` - Proximity to high-risk locations
-*   **Temporal Patterns**: `(Crime)-[:DURING]->(TimeWindow)` - Time-of-day and day-of-week clustering
-*   **Grid Risk Scores**: `(Grid)-[:HIGH_RISK_FOR]->(CrimeType)` - Predictive risk by location and crime type
+OpenStreetMap points of interest, such as parking areas, ATMs, restaurants, schools, and nightlife locations, provide environmental context around incidents.
 
-### 3. LLM-Powered Explanations
-When users click a high-risk zone, an LLM (Gemini/Groq) queries the Knowledge Graph to generate natural language explanations:
-> "This area shows elevated risk due to 12 thefts within 200 meters in the last 30 days, with 8 occurring near University Ave ATMs between 10 PM - 2 AM, matching historical Friday night patterns."
+### Spatial-Temporal Analysis
+
+PostGIS stores crime points and grid polygons, then calculates crime counts by location, day, and recent activity. These counts feed the daily prediction job.
+
+### Graph-Based Context
+
+Neo4j models relationships such as:
+
+- incidents occurring at locations
+- incidents occurring during time blocks
+- incidents near places of interest
+- seasonal and day-of-week patterns
+
+### LLM-Powered Explanations
+
+When a user clicks a predicted risk zone, the backend combines PostGIS prediction metadata with Neo4j explanation facts. Gemini then generates calm, practical safety advice using only the provided data.
+
+Example:
+
+> "This area shows elevated risk during the next 24 hours based on historical incidents, recent activity, and nearby location context. Prefer well-lit routes and stay aware around parking areas."
+
+## Local MVP Testing
+
+Backend:
+
+```powershell
+.\venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+Frontend:
+
+```powershell
+cd frontend
+..\venv\Scripts\python.exe -m http.server 5500 --bind 127.0.0.1
+```
+
+Open:
+
+```text
+http://127.0.0.1:5500
+```
+
+Useful API endpoints:
+
+- `GET /crimes/predict?date=today&min_risk_level=medium`
+- `GET /predict/advice?grid_id=<grid_id>`
+- `GET /crimes/history?date=YYYY-MM-DD&limit=1000`
 
 ## License
+
 This project is proprietary software. All rights reserved.
-See `LICENSE` file for details.
+See `LICENSE` for details.
