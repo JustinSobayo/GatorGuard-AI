@@ -15,6 +15,9 @@ GatorGuard-AI is a data engineering and AI project that turns Gainesville crime 
 - Serves prediction heatmaps and AI-generated safety advice through FastAPI.
 - Displays predicted high-risk zones in a Leaflet frontend.
 
+<img width="1893" height="882" alt="Screenshot 2026-04-30 224131" src="https://github.com/user-attachments/assets/32c4bdc7-b5cf-4eac-a076-71f080a64615" />
+
+
 ## Architecture
 
 ```text
