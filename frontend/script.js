@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'http://localhost:8000';
+    const API_BASE_URL = window.GATORGUARD_API_BASE_URL ?? (
+        ['5500', '5501'].includes(window.location.port) ? 'http://localhost:8000' : ''
+    );
     const GAINESVILLE_CENTER = [29.6516, -82.3248];
 
     const map = L.map('map', {
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function checkBackendHealth() {
         try {
-            await fetchJson(`${API_BASE_URL}/`);
+            await fetchJson(`${API_BASE_URL}/health`);
             dom.apiStatus.textContent = 'Backend online';
             dom.apiStatus.className = 'online';
         } catch (error) {

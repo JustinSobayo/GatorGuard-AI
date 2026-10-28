@@ -1,7 +1,9 @@
 from datetime import date as date_type
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 try:
     from backend.advice_service import (
@@ -34,7 +36,7 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.get("/health")
 def health_check():
     return {"status": "ok", "service": "GainesvilleGuard-AI"}
 
@@ -124,3 +126,8 @@ def predictive_safety_advice(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except PredictionNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

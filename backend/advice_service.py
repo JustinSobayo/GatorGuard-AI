@@ -126,13 +126,22 @@ def generate_predictive_safety_advice(
         except Exception:
             pass
 
-    facts = facts_lookup(resolved_grid_id, radius_meters)
     narrative = narrative_generator(
         prediction=prediction,
-        facts=facts,
+        facts=None,
         radius_meters=radius_meters,
         use_llm=use_llm,
+        grid_id=resolved_grid_id,
+        prediction_date=prediction_date,
+        prediction_window=prediction_window,
     )
+    narrative = dict(narrative)
+    facts = narrative.pop("_tool_facts", None)
+    if facts is None:
+        try:
+            facts = facts_lookup(resolved_grid_id, radius_meters)
+        except Exception:
+            facts = {}
     response = _build_response(prediction, facts, narrative)
 
     if use_cache and not response.get("llm_error"):

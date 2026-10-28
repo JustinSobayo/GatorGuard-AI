@@ -1,0 +1,13 @@
+.git/
+.github/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+.env
+agent-transcripts/
+backend/__pycache__/
+backend/.pytest_cache/
+backend/tests/

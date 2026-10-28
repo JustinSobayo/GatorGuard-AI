@@ -1,0 +1,224 @@
+[
+  {
+    "id": "high-theft-busy-parking",
+    "prediction": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "risk_level": "high",
+      "prediction_date": "2026-10-27",
+      "prediction_window": "Next 24 hours",
+      "risk_score": 0.82,
+      "dominant_crime_type": "theft",
+      "historical_count": 12,
+      "recent_30_day_count": 4,
+      "nearby_poi_score": 0.4,
+      "model_version": "mvp-weighted-v1",
+      "data_snapshot_version": "synthetic-eval-v1",
+      "center_lat": 29.65,
+      "center_lon": -82.32
+    },
+    "facts": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "radius_meters": 500,
+      "total_incidents": 12,
+      "crime_breakdown": [
+        {
+          "type": "theft",
+          "count": 12
+        }
+      ],
+      "temporal_patterns": {
+        "peak_hour": 22,
+        "peak_day": "Friday"
+      },
+      "nearby_places": [
+        {
+          "name": "Downtown parking",
+          "type": "parking",
+          "incident_count": 5
+        }
+      ]
+    },
+    "candidate_advice": null,
+    "notes": "Synthetic high theft risk with parking context."
+  },
+  {
+    "id": "high-burglary-overnight",
+    "prediction": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "risk_level": "high",
+      "prediction_date": "2026-10-27",
+      "prediction_window": "Overnight 22:00-06:00",
+      "risk_score": 0.82,
+      "dominant_crime_type": "burglary",
+      "historical_count": 9,
+      "recent_30_day_count": 3,
+      "nearby_poi_score": 0.4,
+      "model_version": "mvp-weighted-v1",
+      "data_snapshot_version": "synthetic-eval-v1",
+      "center_lat": 29.65,
+      "center_lon": -82.32
+    },
+    "facts": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "radius_meters": 500,
+      "total_incidents": 9,
+      "crime_breakdown": [
+        {
+          "type": "burglary",
+          "count": 9
+        }
+      ],
+      "temporal_patterns": {
+        "peak_hour": 22,
+        "peak_day": "Friday"
+      },
+      "nearby_places": [
+        {
+          "name": "Market parking",
+          "type": "parking",
+          "incident_count": 3
+        }
+      ]
+    },
+    "candidate_advice": null,
+    "notes": "Synthetic overnight burglary context; no guaranteed outcomes."
+  },
+  {
+    "id": "medium-theft-evening",
+    "prediction": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "risk_level": "medium",
+      "prediction_date": "2026-10-27",
+      "prediction_window": "Evening 18:00-22:00",
+      "risk_score": 0.5,
+      "dominant_crime_type": "theft",
+      "historical_count": 6,
+      "recent_30_day_count": 2,
+      "nearby_poi_score": 0.4,
+      "model_version": "mvp-weighted-v1",
+      "data_snapshot_version": "synthetic-eval-v1",
+      "center_lat": 29.65,
+      "center_lon": -82.32
+    },
+    "facts": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "radius_meters": 500,
+      "total_incidents": 6,
+      "crime_breakdown": [
+        {
+          "type": "theft",
+          "count": 6
+        }
+      ],
+      "temporal_patterns": {
+        "peak_hour": 22,
+        "peak_day": "Friday"
+      },
+      "nearby_places": [
+        {
+          "name": "Transit stop",
+          "type": "bus_stop",
+          "incident_count": 2
+        }
+      ]
+    },
+    "candidate_advice": null,
+    "notes": "Synthetic moderate risk near transit."
+  },
+  {
+    "id": "low-risk-sparse-facts",
+    "prediction": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "risk_level": "low",
+      "prediction_date": "2026-10-27",
+      "prediction_window": "Next 24 hours",
+      "risk_score": 0.1,
+      "dominant_crime_type": "reported incidents",
+      "historical_count": 0,
+      "recent_30_day_count": 0,
+      "nearby_poi_score": 0.0,
+      "model_version": "mvp-weighted-v1",
+      "data_snapshot_version": "synthetic-eval-v1",
+      "center_lat": 29.65,
+      "center_lon": -82.32
+    },
+    "facts": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "radius_meters": 500,
+      "total_incidents": 0,
+      "crime_breakdown": [],
+      "temporal_patterns": {},
+      "nearby_places": []
+    },
+    "candidate_advice": null,
+    "notes": "No incidents in fixture; penalize invented detail and exaggerated risk."
+  },
+  {
+    "id": "sparse-graph-context",
+    "prediction": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "risk_level": "medium",
+      "prediction_date": "2026-10-27",
+      "prediction_window": "Next 24 hours",
+      "risk_score": 0.5,
+      "dominant_crime_type": "theft",
+      "historical_count": 2,
+      "recent_30_day_count": 1,
+      "nearby_poi_score": 0.0,
+      "model_version": "mvp-weighted-v1",
+      "data_snapshot_version": "synthetic-eval-v1",
+      "center_lat": 29.65,
+      "center_lon": -82.32
+    },
+    "facts": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "radius_meters": 500,
+      "error": "synthetic_graph_context_unavailable"
+    },
+    "candidate_advice": null,
+    "notes": "Prediction exists but graph context is unavailable; acknowledge limited context."
+  },
+  {
+    "id": "grounding-fail-fixture",
+    "prediction": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "risk_level": "low",
+      "prediction_date": "2026-10-27",
+      "prediction_window": "Next 24 hours",
+      "risk_score": 0.1,
+      "dominant_crime_type": "theft",
+      "historical_count": 2,
+      "recent_30_day_count": 0,
+      "nearby_poi_score": 0.0,
+      "model_version": "mvp-weighted-v1",
+      "data_snapshot_version": "synthetic-eval-v1",
+      "center_lat": 29.65,
+      "center_lon": -82.32
+    },
+    "facts": {
+      "grid_id": "grid_29.65000_-82.32000",
+      "radius_meters": 500,
+      "total_incidents": 2,
+      "crime_breakdown": [
+        {
+          "type": "theft",
+          "count": 2
+        }
+      ],
+      "temporal_patterns": {},
+      "nearby_places": []
+    },
+    "candidate_advice": {
+      "summary": "There will definitely be 500 assaults here tonight.",
+      "prediction_window": "Next 24 hours",
+      "why_risky": [
+        "500 assaults reported in this grid historically."
+      ],
+      "safety_advice": [
+        "Avoid all people from group X."
+      ],
+      "disclaimer": ""
+    },
+    "notes": "Intentional negative control; expect overall_pass=false."
+  }
+]

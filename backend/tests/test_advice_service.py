@@ -56,6 +56,10 @@ def test_generate_predictive_safety_advice_composes_dependencies(mocker):
     assert result["explanation"] == "Elevated theft risk is shown for this window."
     assert result["safety_advice"] == ["Use well-lit routes."]
     prediction_lookup.assert_called_once()
+    narrative_generator.assert_called_once_with(
+        prediction=_prediction(), facts=None, radius_meters=500, use_llm=None,
+        grid_id="grid_29.65000_-82.32000", prediction_date=None, prediction_window=None,
+    )
     facts_lookup.assert_called_once_with("grid_29.65000_-82.32000", 500)
 
 
@@ -84,3 +88,43 @@ def test_validate_advice_response_fills_missing_fields():
     assert result["prediction_window"] == "Next 24 hours"
     assert result["why_risky"]
     assert result["safety_advice"]
+
+
+def test_service_uses_agent_facts_without_second_lookup(mocker):
+    facts = {"nearby_places": [{"name": "Library"}]}
+    narrative = {**build_fallback_advice(_prediction(), facts), "_tool_facts": facts}
+    facts_lookup = mocker.Mock()
+    result = generate_predictive_safety_advice(
+        grid_id=_prediction()["grid_id"], use_cache=False,
+        prediction_lookup=mocker.Mock(return_value=_prediction()),
+        facts_lookup=facts_lookup, narrative_generator=mocker.Mock(return_value=narrative),
+    )
+    assert result["facts"] == facts
+    assert "_tool_facts" not in result
+    assert "_tool_facts" in narrative  # Do not mutate injected results.
+    facts_lookup.assert_not_called()
+
+
+def test_service_survives_facts_fill_in_failure(mocker):
+    result = generate_predictive_safety_advice(
+        grid_id=_prediction()["grid_id"], use_cache=False,
+        prediction_lookup=mocker.Mock(return_value=_prediction()),
+        facts_lookup=mocker.Mock(side_effect=RuntimeError("Neo4j unavailable")),
+        narrative_generator=mocker.Mock(return_value=build_fallback_advice(_prediction())),
+    )
+    assert result["facts"] == {}
+    assert result["explanation"]
+
+
+def test_service_cache_hit_skips_agent_and_facts(mocker):
+    cached = {"grid_id": _prediction()["grid_id"], "facts": {}}
+    mocker.patch("backend.advice_service.get_cached_advice", return_value=cached)
+    facts_lookup = mocker.Mock()
+    narrative_generator = mocker.Mock()
+    assert generate_predictive_safety_advice(
+        grid_id=_prediction()["grid_id"],
+        prediction_lookup=mocker.Mock(return_value=_prediction()),
+        facts_lookup=facts_lookup, narrative_generator=narrative_generator,
+    ) == cached
+    facts_lookup.assert_not_called()
+    narrative_generator.assert_not_called()

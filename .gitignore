@@ -18,5 +18,7 @@ venv/
 # Logs
 *.log
 .venv/
-DOCKER_CHEATSHEET.md
 docs/
+
+# Offline evaluation reports
+backend/eval/results/*.json

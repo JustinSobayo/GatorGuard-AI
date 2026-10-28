@@ -99,6 +99,32 @@ Example:
 
 ## Local MVP Testing
 
+Docker Compose web app:
+
+```powershell
+docker compose up --build web
+```
+
+Open:
+
+```text
+http://localhost:8000
+```
+
+This serves FastAPI and the Leaflet frontend from the same container. Liveness is available at:
+
+```text
+http://localhost:8000/health
+```
+
+Full local stack with ETL services:
+
+```powershell
+docker compose up --build
+```
+
+The web service uses `POSTGRES_HOST=postgres` and `NEO4J_URI=bolt://neo4j:7687` inside Docker. Gemini advice uses `GOOGLE_API_KEY` if it is present; otherwise the backend falls back to deterministic advice.
+
 Backend:
 
 ```powershell
@@ -123,6 +149,52 @@ Useful API endpoints:
 - `GET /crimes/predict?date=today&min_risk_level=medium`
 - `GET /predict/advice?grid_id=<grid_id>`
 - `GET /crimes/history?date=YYYY-MM-DD&limit=1000`
+
+## Offline Advice Evaluation
+
+Evaluate advice quality against six fixed synthetic cases, including an intentional
+bad candidate. This scores schema, grounding, safety/tone, and usefulness; it does
+not measure heatmap accuracy and never runs on the API request path.
+
+With `GOOGLE_API_KEY` set in your environment or `.env`, start with deterministic
+candidates to pay only for judge calls:
+
+```powershell
+$env:GEMINI_JUDGE_MODEL="gemini-2.5-pro"
+.\venv\Scripts\python.exe -m backend.eval.run_advice_judge --use-fallback-candidates
+```
+
+Omit `--use-fallback-candidates` to evaluate the real advice agent. Its database
+tools replay the fixture prediction and facts, so evaluation requires no running
+Postgres or Neo4j. Candidates already supplied in fixtures are always preserved.
+The CLI runs sequentially; its fixture tool overrides are for this standalone
+process only. Candidate generation failures are recorded before judging fallback
+advice.
+
+Reports go to `backend/eval/results/latest.json` (gitignored). Each row preserves
+the candidate, fixture context, scores, field evidence, raw judge output, candidate
+source, errors, and a UTC timestamp. Use `--fixtures PATH` and `--out PATH` to
+choose files, or `--fail-under 0.8` to exit 1 below a chosen pass rate. Normal
+completed runs exit 0 even when cases fail; invalid input or file errors exit 2.
+
+Python clamps scores and recomputes pass/fail: schema must pass, grounding and
+safety/tone must each be at least 4/5. Missing keys or empty candidate fields cannot
+pass the local schema check. Negative controls count as failures in the overall
+pass rate; inspect individual rows to confirm that they were rejected. Judge
+errors count as failures with minimum scores and are also counted separately.
+Without an API key, the runner writes explicit judge errors, not simulated scores.
+
+The judge defaults to `gemini-2.5-pro`, uses temperature 0, and accepts
+`GEMINI_JUDGE_MODEL`; the advice agent uses `GEMINI_MODEL` (default
+`gemini-2.5-flash`). Runs incur Gemini costs. A different variant still shares
+provider bias, and judges can be wrong: manually spot-check results and refresh
+fixtures as data changes. Cross-provider judging is a future improvement.
+
+Offline unit tests use mocked models and need no API key:
+
+```powershell
+.\venv\Scripts\python.exe -m pytest backend/tests
+```
 
 ## License
 
